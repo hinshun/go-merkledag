@@ -11,6 +11,7 @@ import (
 	cid "github.com/ipfs/go-cid"
 	ipldcbor "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
+	opentracing "github.com/opentracing/opentracing-go"
 )
 
 // TODO: We should move these registrations elsewhere. Really, most of the IPLD
@@ -116,6 +117,10 @@ func (n *dagService) RemoveMany(ctx context.Context, cids []cid.Cid) error {
 // locally (and can not be retrieved) an error will be returned.
 func GetLinksDirect(serv ipld.NodeGetter) GetLinks {
 	return func(ctx context.Context, c cid.Cid) ([]*ipld.Link, error) {
+		span, ctx := opentracing.StartSpanFromContext(ctx, "ipld.DAGService.Get")
+		defer span.Finish()
+		span.SetTag("cid", c.String())
+
 		nd, err := serv.Get(ctx, c)
 		if err != nil {
 			if err == bserv.ErrNotFound {
