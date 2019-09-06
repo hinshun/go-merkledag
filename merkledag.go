@@ -5,13 +5,17 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	blocks "github.com/ipfs/go-block-format"
 	bserv "github.com/ipfs/go-blockservice"
 	cid "github.com/ipfs/go-cid"
 	ipldcbor "github.com/ipfs/go-ipld-cbor"
 	ipld "github.com/ipfs/go-ipld-format"
+	logging "github.com/ipfs/go-log"
 )
+
+var log = logging.Logger("merkledag")
 
 // TODO: We should move these registrations elsewhere. Really, most of the IPLD
 // functionality should go in a `go-ipld` repo but that will take a lot of work
@@ -250,11 +254,17 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 					return
 				}
 
+				start := time.Now()
 				nd, err := ipld.Decode(b)
 				if err != nil {
 					out <- &ipld.NodeOption{Err: err}
 					return
 				}
+				elapsed := time.Now().Sub(start)
+				log.LogKV(ctx,
+					"event", "ipld.Decode",
+					"duration", elapsed,
+				)
 
 				out <- &ipld.NodeOption{Node: nd}
 				count++
