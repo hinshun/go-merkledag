@@ -257,12 +257,12 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 					if count != len(keys) {
 						out <- &ipld.NodeOption{Err: fmt.Errorf("failed to fetch all nodes")}
 					}
-					return
 					log.LogKV(ctx,
 						"event", "getNodesFromBGEnd",
 						"culmIpldDecodeTime", culmIpldDecodeTime,
 						"culmWaitForIpldNodeOut", culmWaitForIpldNodeOut,
 					)
+					return
 				}
 
 				start := time.Now()
