@@ -15,6 +15,11 @@ import (
 	logging "github.com/ipfs/go-log"
 )
 
+var (
+	CulmIpldDecodeTime     time.Duration
+	CulmWaitForIpldNodeOut time.Duration
+)
+
 var log = logging.Logger("merkledag")
 
 // TODO: We should move these registrations elsewhere. Really, most of the IPLD
@@ -245,11 +250,6 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 	go func() {
 		defer close(out)
 
-		var (
-			culmIpldDecodeTime     time.Duration
-			culmWaitForIpldNodeOut time.Duration
-		)
-
 		for {
 			select {
 			case b, ok := <-blocks:
@@ -257,11 +257,6 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 					if count != len(keys) {
 						out <- &ipld.NodeOption{Err: fmt.Errorf("failed to fetch all nodes")}
 					}
-					log.LogKV(ctx,
-						"event", "getNodesFromBGEnd",
-						"culmIpldDecodeTime", culmIpldDecodeTime,
-						"culmWaitForIpldNodeOut", culmWaitForIpldNodeOut,
-					)
 					return
 				}
 
@@ -271,11 +266,11 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 					out <- &ipld.NodeOption{Err: err}
 					return
 				}
-				culmIpldDecodeTime += time.Now().Sub(start)
+				CulmIpldDecodeTime += time.Now().Sub(start)
 
 				start = time.Now()
 				out <- &ipld.NodeOption{Node: nd}
-				culmWaitForIpldNodeOut += time.Now().Sub(start)
+				CulmWaitForIpldNodeOut += time.Now().Sub(start)
 
 				count++
 
