@@ -244,6 +244,12 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 
 	go func() {
 		defer close(out)
+
+		var (
+			culmIpldDecodeTime     time.Duration
+			culmWaitForIpldNodeOut time.Duration
+		)
+
 		for {
 			select {
 			case b, ok := <-blocks:
@@ -252,6 +258,11 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 						out <- &ipld.NodeOption{Err: fmt.Errorf("failed to fetch all nodes")}
 					}
 					return
+					log.LogKV(ctx,
+						"event", "getNodesFromBGEnd",
+						"culmIpldDecodeTime", culmIpldDecodeTime,
+						"culmWaitForIpldNodeOut", culmWaitForIpldNodeOut,
+					)
 				}
 
 				start := time.Now()
@@ -260,13 +271,12 @@ func getNodesFromBG(ctx context.Context, bs bserv.BlockGetter, keys []cid.Cid) <
 					out <- &ipld.NodeOption{Err: err}
 					return
 				}
-				elapsed := time.Now().Sub(start)
-				log.LogKV(ctx,
-					"event", "ipld.Decode",
-					"duration", elapsed,
-				)
+				culmIpldDecodeTime += time.Now().Sub(start)
 
+				start = time.Now()
 				out <- &ipld.NodeOption{Node: nd}
+				culmWaitForIpldNodeOut += time.Now().Sub(start)
+
 				count++
 
 			case <-ctx.Done():

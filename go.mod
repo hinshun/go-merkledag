@@ -15,3 +15,5 @@ require (
 	github.com/multiformats/go-multihash v0.0.5
 	github.com/opentracing/opentracing-go v1.1.0
 )
+
+go 1.13
