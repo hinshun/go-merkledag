@@ -77,7 +77,7 @@ func (n *ProtoNode) SetCidBuilder(builder cid.Builder) {
 	if builder == nil {
 		n.builder = v0CidPrefix
 	} else {
-		n.builder = builder.WithCodec(cid.DagProtobuf)
+		n.builder = builder.WithCodec(cid.DagCBOR)
 		n.cached = cid.Undef
 	}
 }
